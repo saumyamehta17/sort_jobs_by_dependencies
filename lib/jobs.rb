@@ -1,4 +1,5 @@
 require_relative 'input_parser'
+require 'pry'
 
 class Jobs
 
@@ -29,25 +30,25 @@ class Jobs
     end
 
     def sort_by_dependencies
-      visited = Hash[dependencies.keys.map {|k| [k, false]}]
-      in_call_stack = {}
+      visited = Hash[dependencies.keys.collect {|key| [key, false]}]
+      job_stack = {}
       dependencies.each_pair do |job, dependency|
         return if error
-        helper(visited, in_call_stack, job) unless visited[job]
+        sort_helper(visited, job_stack, job) unless visited[job]
       end
       result
     end
 
-    def helper(visited, in_call_stack, job)
-      self.error = CIRCULAR_DEPENDENCY_ERROR and return if in_call_stack[job]
+    def sort_helper(visited, job_stack, job)
+      @error = CIRCULAR_DEPENDENCY_ERROR and return if job_stack[job]
       return if visited[job]
 
       if dependencies[job]
-        in_call_stack[job] = true
-        helper(visited, in_call_stack, dependencies[job])
+        job_stack[job] = true
+        sort_helper(visited, job_stack, dependencies[job])
       end
 
-      in_call_stack[job] = false
+      job_stack[job] = false
       visited[job] = true
       result << job
     end  
