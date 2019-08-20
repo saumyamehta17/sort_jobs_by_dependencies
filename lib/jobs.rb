@@ -1,8 +1,13 @@
-class Jobs
-  FILE_PATH = 'inputs'
-  SEPARATOR = '=>'.freeze
+require_relative 'input_parser'
 
-  attr_accessor :dependencies, :result
+class Jobs
+
+  FILE_PATH = 'inputs'
+  
+  SELF_DEPENDENCY_ERROR = 'jobs can\'t depend on themselves'.freeze
+  CIRCULAR_DEPENDENCY_ERROR = 'jobs can\'t have circular dependencies'.freeze
+
+  attr_accessor :dependencies, :result, :error
 
   def initialize
     @dependencies = {}
@@ -11,22 +16,39 @@ class Jobs
 
   def sort
     build_dependencies
+    sort_by_dependencies
   end  
 
   private
 
     def build_dependencies
       File.open(FILE_PATH).each do |line|
-        parsed_result = classify(input)
+        parsed_result = InputParser.new(line).parse
         dependencies[parsed_result.job] = parsed_result.dependency
       end
     end
 
-    def classify(input)
-      inputs = input.split(SEPARATOR)
+    def sort_by_dependencies
+      visited = Hash[dependencies.keys.map {|k| [k, false]}]
+      in_call_stack = {}
+      dependencies.each_pair do |job, dependency|
+        return if error
+        helper(visited, in_call_stack, job) unless visited[job]
+      end
+      result
+    end
 
-      job = inputs.first.strip
-      dependency = inputs.last.strip if (inputs.length > 1 and not inputs.last.strip.empty?)
-      job, dependency    
+    def helper(visited, in_call_stack, job)
+      self.error = CIRCULAR_DEPENDENCY_ERROR and return if in_call_stack[job]
+      return if visited[job]
+
+      if dependencies[job]
+        in_call_stack[job] = true
+        helper(visited, in_call_stack, dependencies[job])
+      end
+
+      in_call_stack[job] = false
+      visited[job] = true
+      result << job
     end  
 end  
