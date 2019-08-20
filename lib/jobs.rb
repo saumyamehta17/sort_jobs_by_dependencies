@@ -9,8 +9,10 @@ class Jobs
   CIRCULAR_DEPENDENCY_ERROR = 'jobs can\'t have circular dependencies'.freeze
 
   attr_accessor :dependencies, :result, :error
+  attr_reader :filename
 
-  def initialize
+  def initialize(filename)
+    @filename = filename
     @dependencies = {}
     @result = []
   end  
@@ -23,8 +25,11 @@ class Jobs
   private
 
     def build_dependencies
-      File.open(FILE_PATH).each do |line|
+      File.open("inputs/#{filename}").each do |line|
         parsed_result = InputParser.new(line).parse
+        if (parsed_result.job == parsed_result.dependency)
+          self.error = SELF_DEPENDENCY_ERROR and return 
+        end
         dependencies[parsed_result.job] = parsed_result.dependency
       end
     end

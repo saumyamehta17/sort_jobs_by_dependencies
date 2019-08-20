@@ -4,5 +4,16 @@ $LOAD_PATH.unshift(File.dirname(__FILE__), "lib")
 
 require 'jobs'
 
-jobs = Jobs.new
-puts jobs.sort.inspect
+jobs = Jobs.new('with_dependency')
+puts "Jobs with dependency -> #{jobs.sort.inspect}"
+
+jobs = Jobs.new('no_dependency')
+puts "Jobs with no dependency -> #{jobs.sort.inspect}"
+
+jobs = Jobs.new('circular_dependency')
+jobs.sort
+puts jobs.error
+
+jobs = Jobs.new('self_dependency')
+jobs.sort.inspect
+puts jobs.error
