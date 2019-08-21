@@ -5,6 +5,17 @@ RSpec.describe Jobs do
 
   describe 'Job Sorting' do
     
+    context 'file validate' do
+
+      it 'return error with invalid file' do
+        expect { Jobs.new("invalid_file") }.to raise_error(Jobs::INVALID_FILE_ERROR)
+      end
+
+      it 'return error with no filename' do
+        expect { Jobs.new(nil) }.to raise_error(Jobs::INVALID_FILE_ERROR)
+      end
+    end
+      
     context 'valid inputs' do
 
       it 'returns job with no dependency' do

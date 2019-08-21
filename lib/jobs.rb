@@ -3,8 +3,7 @@ require 'pry'
 
 class Jobs
 
-  FILE_PATH = 'inputs'
-  
+  INVALID_FILE_ERROR = 'please input correct file'.freeze  
   SELF_DEPENDENCY_ERROR = 'jobs can\'t depend on themselves'.freeze
   CIRCULAR_DEPENDENCY_ERROR = 'jobs can\'t have circular dependencies'.freeze
 
@@ -12,6 +11,7 @@ class Jobs
   attr_reader :filename
 
   def initialize(filename)
+    raise INVALID_FILE_ERROR if filename.nil? || !File.exists?("inputs/#{filename}")
     @filename = filename
     @dependencies = {}
     @result = []
